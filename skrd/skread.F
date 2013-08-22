@@ -1,0 +1,637 @@
+***********************************************************************
+*     -------------------------------------
+      SUBROUTINE SKREAD(ILUN,*,*,*,*)
+*     -------------------------------------
+*
+*     (Purpose)
+*        Read data in the banks and fill them into commons.
+*        (for Not compiling constant file)
+*
+*     (Input)
+*        ILUN ; Logical Unit #
+*
+*     (Output)
+*       
+*     (Return)
+*        Return 1 ; Read Error
+*               2 ; End of File
+*               3 ; Data 'PDST' bank
+*               4 ; Data 'RUNINF' bank
+*
+*     (Creation Date and Author)
+*       1992.08.27 ; First version by K.S.Hirata
+*            11.07 ;      modified by Y.Koshio
+*       1996.07.17 ; Fixed search for MC (TQA) banks if real data (TQAREAL)
+*                         is missing. --JohnF.
+*       1997.03.   ; Support to Veto counter by J.Kameda
+*       1997.11.10 ; Add SKCREAD entry which returns IERR instead of a
+*                         contitional return.  -- C.McGrew
+*       1998.7.28  ; Fix typo in processing of MC badch (nsun->nsub)
+*                    D.Casper
+*       1998.8.26  ; merged with apskrd/skread.F --- Y.Itow      
+*	1998.8.27  ; Added new option (17) to recalibrate OD data
+*			  -- A.Kibayashi 
+*	2003.1.31  ; Change for SK-II
+*       2007.07.03 ; modified by Y.Koshio/Y.Takeuchi
+*           o for QB
+*       2007.9.13  ; Modification of MC badch for SK-II,III and
+*                    addition of charge correction for only ATMPD
+*                    --C.Ishihara
+*      (2007.9.4   ; ROOT I/O by Maximilien Fechner)
+*       2008.02.28 ; ported from SKREAD.F, merged QB & ROOT by Y.Takeuchi
+*       2008.04.30 ; Modified by Y.Koshio/Y.Takeuchi
+*           o added SK_GEOMETRY=4 and skip memory initialize for SK=1,2,3
+*       2008.06.09 : Unified zbs and root by Y.Koshio
+*
+************************************************************************
+
+      implicit none
+
+#include "skparm.h"
+#include "skhead.h"
+#include "sktq.h"
+#include "skveto.h"
+#include "apversion.h"
+#include "skbadc.h"      
+
+      integer ilun, lun, ierr, ierr_bad, ierr_tqareal,
+     &     ipbank, ipbank1, ipbank2, ipbank3
+
+      integer ISKBIT, ICHK(MAXPM,2),ICHKV(MAXPM+1:12000,2)
+      COMMON /SKOPT/ISKBIT
+      COMMON /SKRDLC/ICHK
+      COMMON /SKRDLCV/ICHKV
+
+      INTEGER IFLAG, last_nrun, last_nphase, i, nrun, nsub, ntmp, nphase
+      SAVE IFLAG, last_nrun, last_nphase
+      DATA IFLAG /0/
+      data last_nrun/-1/, last_nphase/-1/
+
+      INTEGER MAXVETO
+      PARAMETER(MAXVETO=12000-MAXPM)
+
+      integer IDATA(20),NDATA
+
+      integer NRUNPRV, NSUBPRV
+      save NRUNPRV, NSUBPRV
+
+      integer status
+
+C define version number for skread      
+************************
+      apskrdlibver=3.00
+***********************
+      
+C read next event, if ILUN is a positive number
+
+      LUN = ILUN
+      IERR = 0
+      IERR_BAD = 0
+      IERR_TQAREAL = 0
+
+      if(SK_FILE_FORMAT.eq.0) then ! ZBS format
+
+c-----if LUN<0 only re-fill common without reading next event
+         IF (LUN.GT.0) THEN
+            IF(.NOT.BTEST(ISKBIT,31-20)) CALL KZECLR
+            CALL KZREAD(LUN,IERR)
+            IF(IERR.EQ.1)THEN   !----------------- End of File
+               CALL KZECLR
+               RETURN 2
+            ENDIF
+            IF(IERR.EQ.2)THEN   !----------------- Read Error
+               CALL MSGOUT
+               CALL KZECLR
+               RETURN 1
+            END IF
+            IF(BTEST(ISKBIT,31-15)) THEN
+               write(6,*) 'Please set 15 only for skrawread'
+               stop
+            ENDIF
+         END IF
+
+      else                      ! root format
+
+c Maximilien Fechner, sept 2007
+c special input code : MODE=1 or -1 means "ROOT" input
+
+c dec 2007 : ilun is now used in ROOT mode, to identify
+c the tree manager  : there can be several of them in memory
+
+c jun 2008 : unified ZBS and root by Koshio
+
+c advance one entry in the tree if mode >0
+c if not, keep the same position (allows reloading of the same event)
+         if (LUN.gt.0) then
+            root_id = ILUN
+            call skroot_next_entry(ilun,ierr)
+         else
+            root_id = -ILUN
+         endif
+c end of file
+         if (ierr .ne. 0 ) return 2
+
+c         write(*,*) status,nrunsk,nsubsk,nevsk,ndaysk,
+c     &        ntimsk,nt48sk,mdrnsk,idtgsk,ifevsk,ltcgps,nsgps,
+c     &        nusgps, ltctrg, ltcbip,iffscc,itdct0,icalva,sk_geometry
+
+      endif
+
+C --- Check option
+
+      IF(.NOT.BTEST(ISKBIT,31-31)) THEN
+         WRITE(6,*) 'Please set option 31 using SKOPTN'
+         STOP
+      ENDIF
+
+C --- Read 'HEADER' bank and fill the common /SKHEAD/
+
+      if (sk_geometry .ge. 4) then
+
+      if (ilun.gt.0) then  ! 2008/07/28 read only when LUN>0 to keep it0xsk (y.t.)
+         if(SK_FILE_FORMAT.eq.0) then ! ZBS format
+            CALL HEADSK(*995)
+         else                   ! root format
+            CALL HEADSK(*99)
+         endif
+      endif
+      else
+            CALL HEADSK(*995)
+      endif
+
+C geometry position is set
+
+      if(MDRNSK.eq.0.or.MDRNSK.eq.999999) then ! Monte Carlo
+         if(SK_FILE_FORMAT.eq.0) then ! zbs
+            CALL KZBLOC('MCHEAD',IPBANK)
+            IF (IPBANK.EQ.0) then
+               write(6,*) 'SKREAD:'
+               write(6,*) 'Really MC files???'
+               write(6,*) 'MCHEAD bank does not exist.'
+               write(6,*) 'Ask Koshio.'
+               stop
+            ENDIF
+            CALL KZGET1('MCHEAD',0,NDATA,IDATA)
+            IF (NDATA.EQ.0) then
+               write(6,*) 'SKREAD:'
+               write(6,*) 'MCHEAD bank is empty.'
+               write(6,*) 'Ask Koshio.'
+               stop
+            ENDIF
+            if(IDATA(1).eq.1) then
+               SK_GEOMETRY=IDATA(1)
+            else if(IDATA(1).eq.1001) then
+               SK_GEOMETRY=IDATA(1)-1000
+            else if(IDATA(1).eq.1002) then
+               SK_GEOMETRY=IDATA(1)-1000
+            else if(IDATA(1).eq.1003) then
+               SK_GEOMETRY=IDATA(1)-1000
+            else if(IDATA(1).eq.1004) then
+               SK_GEOMETRY=IDATA(1)-1000
+            else
+               write(6,*) 'SKREAD:'
+               write(6,*) 'Strange version number : ',idata(1)
+               write(6,*) 'Ask Koshio.'
+               stop
+            endif
+         else                   ! for root
+cc            write(6,*) 'ROOT format for MC is not supported yet'
+cc            stop
+         endif
+
+      else                      ! real data
+         if(SK_FILE_FORMAT.eq.0) then
+            CALL KZBLOC('MCHEAD',IPBANK)
+            IF (IPBANK.ne.0) then
+               write(6,*) 'SKREAD:'
+               write(6,*) 'Really data files???'
+               write(6,*) 'MCHEAD bank exist.'
+               write(6,*) 'Ask Koshio.'
+               stop
+            ENDIF
+         endif
+         if(NRUNSK.gt.0 .and. NRUNSK.lt.20000) then
+            SK_GEOMETRY=1
+         else if(NRUNSK.lt.30000) then
+            SK_GEOMETRY=2
+         else if(NRUNSK.lt.40000) then
+            SK_GEOMETRY=3
+         else
+            SK_GEOMETRY=4
+         endif
+
+      endif
+      CALL GEOSET
+
+c*** for bad channel
+c     if SKOPT=26 ,variable MC badch (depends on subrun #)
+      IF(BTEST(ISKBIT,31-26)) THEN
+
+         if(MDRNSK.ne.0.and.MDRNSK.ne.999999) then ! Real data
+            nrun = NRUNSK
+            nsub = NSUBSK
+         else                   ! Monte Carlo
+C
+C  Badch for MC for SK-I,II,III
+C     if SKOPT=26 ,variable MC badch (depends on subrun #)
+C     else     : badch of run 2892 is used for SK-I
+C
+C
+C add by K.Ishihara 
+C 2007.9.13 modified by C.Ishihara
+C
+C  ----For only ATMPD MC
+            if(BTEST(ISKBIT,31-27))then
+               ntmp = NSUBSK
+
+C               write(6,*)'SKREAD-I-MC badch is assigned by control file'
+C               use badch of badch info bank or file / 
+C               if there is no , stop (only for atmpd)
+               nrun = 71300
+               write(*,*) "Modded-skread. calling skmcbadch w/ nrun=",nrun
+               call skmcbadch(ntmp,nphase,nrun,nsub)
+               if(nphase.le.0)then
+                  write(6,*)'Not found in badch control table/yr=',
+     &                 nsubsk
+                  stop 'skread: MC bad channel information not found'
+               else
+                  if (nphase.ne.last_nphase .or. nrun.ne.last_nrun) then
+                     if(nphase.eq.999)then
+                        write(6,*)'skread: ATMPD MC badch (nphase=',nphase,
+     &                       'info for ', 
+     &                       'fixed nrun,nsub=', nrun,nsub
+                     else   
+                        write(6,*)'skread: using MC bad channels for phase'
+     &                       ,nphase,', run/sub:',nrun,nsub,
+     &                       ' for nrunsk',nrunsk
+                     endif
+                     last_nphase = nphase
+                     last_nrun   = nrun
+                  endif
+               endif
+C  ----For MC except for ATMPD, check LOWMC bank or use badch of fixed run
+            else
+               CALL KZBLOC('LOWMC',IPBANK)
+               IF (IPBANK.ne.0) then
+                  CALL KZGET1('LOWMC',1,NDATA,IDATA)
+                  nrunsk = IDATA(1)
+                  nsubsk = IDATA(2)
+                  nrun = nrunsk
+                  nsub = nsubsk
+ccc 2010/04/29 add by B.Yang/Y.Takeuchi for SK-III B8MC
+               ELSE IF (NRUNSK.NE.0 .AND. NRUNSK.NE.999999) THEN
+                  nrun = nrunsk
+                  IF (NSUBSK.NE.0 .AND. NSUBSK.NE.999999) THEN
+                     nsub = nsubsk
+                  ELSE
+                     nsub = 1
+                  ENDIF
+ccc
+               ELSE
+                  nsub = 1
+                  IF(SK_GEOMETRY.eq.1) then
+                     nrun = 2892
+                  ELSE IF(SK_GEOMETRY.eq.2) then
+                     nrun = 21926
+                  ELSE IF(SK_GEOMETRY.eq.3) then
+                     nrun = 31030
+                  ELSE IF(SK_GEOMETRY.eq.4) then
+c                     nrun = 62361
+                     nrun = 72300
+                  ELSE
+                     write(6,*) 'SK_GEOMETRY =',SK_GEOMETRY,
+     &                    ' is not supported yet'
+                     stop
+                  ENDIF
+               ENDIF
+
+               if (nrun.ne.last_nrun) then
+                  write(6,*)
+     &                 'skread: MC bad channel information for fixed nrun=',
+     &                 nrun
+                  last_nrun = nrun
+               endif
+            endif
+         endif
+
+         IF(NRUN.NE.NRUNPRV .OR. NSUB.NE.NSUBPRV) THEN
+            CALL SKBADCH(NRUN, NSUB, IERR_BAD)
+            IF (IERR_BAD.LT.0)
+     $           WRITE(6,*)'skread: error',ierr_bad,
+     $           ' reading bad channels for run',nrunsk,
+     $           ', subrun ',nsubsk
+            NRUNPRV=NRUN
+            NSUBPRV=NSUB
+         ENDIF
+      ENDIF
+
+cc --- initialize inner common
+
+      NQISK = 0
+      QISMSK = 0.
+      QIMXSK = 0.
+      TIMNSK = 100000.
+      TIMXSK = -100000.
+      
+      call lbfset0(ICHK  ,MAXPM*2)
+      call lbfset0(QISK  ,MAXPM  )
+      call lbfset0(TISK  ,MAXPM  )
+      call lbfset0(IQABSK,MAXPM*2)
+      call lbfset0(ITABSK,MAXPM*2)
+
+      if (SK_GEOMETRY.le.3) then
+         NQISKZ = 0
+      else
+c*** QB
+         if (ilun.gt.0) then    ! only when next event
+            NQISKZ = 0
+            call lbfset0(IHTIFLZ,MAXPM*30)  
+            call lbfset0(ICABIZ, MAXPM*30)
+            call lbfset0(ITISKZ ,MAXPM*30)
+            call lbfset0(IQISKZ ,MAXPM*30)
+            call lbfset0(TISKZ , MAXPM*30)
+            call lbfset0(QISKZ , MAXPM*30)
+
+            nqisk_raw = 0
+            pc2pe_raw = 0
+            call lbfset0(ICABBF_RAW, MAXPM*30)  
+            call lbfset0(TBUF_RAW,   MAXPM*30)
+            call lbfset0(QBUF_RAW,   MAXPM*30)
+            call lbfset0(ITISKZ_raw, MAXPM*30)
+            call lbfset0(IQISKZ_raw, MAXPM*30)
+
+         endif
+      endif
+
+cc --- initialize anti common      
+
+      nqask = 0
+      qasmsk = 0.
+      qamxsk = 0.
+      tamnsk = 100000.
+      tamxsk = -100000.
+      call lbfset0(QASK  ,MAXPMA )
+      call lbfset0(TASK  ,MAXPMA )
+
+      if(SK_GEOMETRY.le.3) then ! ATM
+         nhitaz_raw = 0 
+         call lbfset0(IHTFLZ,MAXPMA*16)
+         call lbfset0(ICABAZ,MAXPMA*16)
+         call lbfset0(TASKZ ,MAXPMA*16)
+         call lbfset0(QASKZ ,MAXPMA*16)
+
+      else                      !QB
+c** modified for QB
+         if (ilun.gt.0) then  ! only when next event 
+            nhitaz_raw = 0
+            call lbfset0(IHTFLZ, MAXPMA*30)
+            call lbfset0(ICABAZ, MAXPMA*30)
+            call lbfset0(ITASKZ ,MAXPMA*30)
+            call lbfset0(IQASKZ ,MAXPMA*30)
+            call lbfset0(TASKZ , MAXPMA*30)
+            call lbfset0(QASKZ , MAXPMA*30)
+
+            call lbfset0(ICABAZ_raw, MAXPMA*30)
+            call lbfset0(TASKZ_raw,  MAXPMA*30)
+            call lbfset0(QASKZ_raw,  MAXPMA*30)
+            call lbfset0(ITASKZ_raw, MAXPMA*30)
+            call lbfset0(IQASKZ_raw, MAXPMA*30)
+         endif
+      endif
+      
+cc --- initialize veto common
+
+      NQVSK = 0
+      QVSMSK = 0.
+      QVMXSK = 0.
+      TVMNSK = 100000.
+      TVMXSK = -100000.
+      
+      do 22 i = MAXPM+1,12000
+         QVSK(i) = 0.0
+         TVSK(i) = 0.0
+         ICHKV(i,1) = 0
+         ICHKV(i,2) = 0
+         IQABSKV(i,1) = 0
+         ITABSKV(i,1) = 0
+         IQABSKV(i,2) = 0
+         ITABSKV(i,2) = 0
+ 22   Continue
+
+**** ROOT format
+
+      if(SK_FILE_FORMAT.eq.1) then
+
+         IF(BTEST(ISKBIT,31-30)) THEN
+            if (ilun.gt.0) then
+               root_id = ILUN
+            else
+               root_id = -ILUN
+            endif
+            call tqrealsk(*99)
+c*** mask badch 
+            if (SK_GEOMETRY.ge.4) then
+               if (BTEST(ISKBIT,31-25)) call skbadch_mask_tqz()
+            endif
+
+            call tqarealsk(status)
+            if ( status .ne. 0 ) goto 99
+         ENDIF
+
+c normal return
+         return
+
+ 99      continue
+         print *,'error reading the root tree'
+c end of file or read error
+         if (ierr .ne. 0 ) then
+            return 2 
+         else
+            return 1
+         endif
+
+      endif
+
+**** ZBS format
+
+C     read informatios from waterjob (only for atmpd)
+      IF(BTEST(ISKBIT,31-23))then
+         call SKRDMCVER
+         CALL SKGETWATER
+      endif
+
+C     Read 'VETO' bank and fill common /SKTV/ /SKQV/
+         IF(BTEST(ISKBIT,31-19)) CALL TQVREALSK(*115)
+ 115  Continue
+
+C     Read 'TQ' bank and fill common /SKTV/ /SKQV/
+
+	 IF(BTEST(ISKBIT,31-18)) CALL TQVSK(*116)
+ 116  Continue
+
+C --- Read 'TQ' bank and fill the commons /SKCHNL/
+      IF(BTEST(ISKBIT,31-29).OR.MDRNSK.EQ.0) CALL TQSK(*110)
+ 110  CONTINUE
+
+C --- Read 'TQZ' bank and fill the commons /SKCHNL/
+      IF(BTEST(ISKBIT,31-16).OR.MDRNSK.EQ.0) CALL TQSKZ(*111)
+ 111  CONTINUE
+
+C --- Read 'TQAZ' bank and fill the commons /SKCHNL/
+      IF(BTEST(ISKBIT,31-16).OR.MDRNSK.EQ.0) CALL TQSKAZ(*112)
+ 112  CONTINUE
+
+C --- Read 'TQREAL'(if it exist) bank 
+C          and fill the data to commons /SKQ/,/SKT/
+
+      IF(BTEST(ISKBIT,31-30)) THEN
+
+         CALL TQREALSK(*100)
+c*** mask badch 
+         if (SK_GEOMETRY.ge.4) then
+            if (BTEST(ISKBIT,31-25)) call skbadch_mask_tqz()
+         endif
+
+         IF(BTEST(ISKBIT,31-23))then
+
+            IF(MDRNSK.NE.0.and.nrunsk.lt.RUNNUM_REP) CALL SKQCOR
+
+            IF(MDRNSK.NE.0.and.sk_geometry.le.3)CALL SKQCORRATE
+
+         ENDIF
+         GOTO 200
+
+ 100     CONTINUE
+
+         CALL KZBLOC('TQ',IPBANK)
+         IF(IPBANK.LE.0) THEN
+            WRITE(6,*) 'Warnning; There is no TQ nor TQREAL bank'
+            GOTO 200
+         ENDIF
+         
+C --- Fill the data to commons /SKQ/,/SKT/ in case NOT exist 'TQREAL' bank
+
+         CALL CMTQSK
+
+C --- Make 'TQREAL' bank
+
+ccc         CALL MKTQREAL
+
+      ENDIF
+
+ 200  CONTINUE
+
+c-AK  Read 'RWANTI' bank and fill commons /skqa/,/skta/,/sktqaz/,/skheada/
+c     regardless of header to recalibrate OD
+
+      CALL KZBLOC('RWANTI',IPBANK)
+      if(btest(iskbit,31-17).and.ipbank.gt.0) then
+         call tqask(*210)
+      else
+         goto 993
+      endif
+      return
+
+ 993  continue
+
+C --- Read 'AHEADER' bank and fill the common /SKHEADA/
+      call aheadsk(*997)
+
+C --- Read 'TQAREAL' bank and fill the commons /SKQA/,/SKTA/,/SKTQAZ/
+      IF(BTEST(ISKBIT,31-30)) THEN
+         CALL TQAREALSK(ierr_tqareal)
+      ENDIF
+
+      RETURN
+
+ 997  continue
+cccccccccccccccccccccccccccccccccccccc
+c**** for QB
+      IF(BTEST(ISKBIT,31-30)) THEN
+         CALL TQAREALSK(ierr_tqareal)
+         if(ierr_tqareal.ne.0) goto 996
+      ENDIF
+      return
+cccccccccccccccccccccccccccccccccccccc
+
+ 996  continue
+      CALL MSGOUT
+
+C --- Read 'TQA' bank and fill the commons /SKCHNL/, 
+c --- if TQAREAL does not exist.
+      IF(BTEST(ISKBIT,31-29).OR.MDRNSK.EQ.0) CALL TQASK(*210)
+      return
+
+ 210  CONTINUE
+
+      IF(MDRNSK.EQ.0) THEN
+         IF(IFLAG.EQ.0) WRITE(6,*) 'Warning: There is no TQA (MC) bank'
+         IFLAG = 1
+      ENDIF
+      return
+
+***********************************************************************
+*                        w/o 'HEADER' bank                            *
+***********************************************************************
+ 995  CONTINUE
+C --- READ 'PDST' bank and fill the commons /SKPDHD/,/SKTEMP/,/SKPDST/
+
+      IF(BTEST(ISKBIT,31-22)) THEN
+         CALL PDSTSK(*998)
+
+      ELSE
+         CALL KZBLOC('PDST',IPBANK)
+         IF(IPBANK.LE.0)THEN
+            CALL KZBLOC('SPDST',IPBANK)
+            IF(IPBANK.LE.0)GOTO 998
+         ENDIF
+c         IF(BTEST(ISKBIT,31-20)) CALL KZECLR
+      ENDIF
+      RETURN 3
+
+C --- w/o 'HEADER' bank and 'PDST' bank
+
+ 998  CONTINUE
+      CALL KZBLOC('RUNINF',IPBANK)
+      CALL KZBLOC('MISMATCHED',IPBANK1)
+      CALL KZBLOC('SPACERS',IPBANK2)
+      CALL KZBLOC('QBEESTAT',IPBANK3)
+      IF(IPBANK.LE.0.and.IPBANK1.LE.0.and.IPBANK2.LE.0.and.IPBANK3.LE.0) then
+         WRITE(6,*) 'ERROR; There is no HEADER nor PDST bank'
+         STOP
+      ENDIF
+
+c*** read runinf
+      if (ipbank.ne.0) call runinfsk
+
+c      IF(BTEST(ISKBIT,31-20)) CALL KZECLR
+      RETURN 4
+
+      END
+
+      SUBROUTINE SKCREAD(ILUN,IERR)
+c     Call SKREAD so that it can be used from C.
+
+      call SKREAD(ILUN,*100,*200,*300,*400)
+
+      IERR = 0
+      RETURN
+
+ 100  CONTINUE
+      IERR = 1
+      RETURN
+
+ 200  CONTINUE
+      IERR = 2
+      RETURN
+
+ 300  CONTINUE
+      IERR = 3
+      RETURN
+
+
+ 400  CONTINUE
+      IERR = 4
+      RETURN
+
+      END

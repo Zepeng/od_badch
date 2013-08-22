@@ -1,0 +1,555 @@
+==> aheadsk.F <==
+
+     (Purpose)
+        Read 'AHEADER' bank and fill the common /SKHEAD/
+
+     (Input)
+        none
+
+     (Output)
+       
+     (Return)
+        Return 1 ; Data w/o 'AHEADER' bank
+       
+     (Creation Date and Author)
+     1996.03.30 ; Created -- Flanagan, J.
+
+==> anticalsk.c <==
+
+     (Purpose)
+        Functions for manipulating anti-counter data.
+
+ 1996.03.01	Created --johnf
+
+
+==> anticalsk.h <==
+
+     (Purpose)
+        Stuff for calibrating anti-counter tubes and hits.
+        96.3.4	created -- johnf
+
+==> atmaddrd.F <==
+
+     (Purpose)
+        Read ATM address and fill them into a common block SKATM
+
+     Y.Takeuchi 28-NOV-1995
+     17-Jan-1996 modified by y.takeuchi
+
+
+==> cadcsk.F <==
+
+     (Purpose)
+        Read NEXT 'PDST' bank and fill the commons /SKPDST/,/SKTEMP/
+
+     (Input)
+        none
+
+     (Output)
+       
+     (Return)
+        Return 1 ; Data w/o 'PDST' bank
+       
+
+     (Creation Date and Author)
+       1992.08.27 ; First version by K.S.Hirata
+
+
+==> cmtqsk.F <==
+
+     (Purpose)
+        Fill the commons /SKQ/,/SKT/,/SKCHNL/
+
+     (Input)
+        ICHK(ICAB,IABC) ; Flag. w data    (=1)
+                                w/o data  (=0)
+
+     (Output)
+       
+       
+
+     (Creation Date and Author)
+       1992.08.28 ; First version by K.S.Hirata
+
+
+==> difpresk.F <==
+
+     (Purpose)
+       Calc DIFFERETIAL TIME OF EACH EVENT
+
+     (Input)
+       ICLKOLD(3) : OLD 48bit clock
+       ICLKNEW(3) : NEW 48bit clock      
+
+     (Output)
+       DIFTEVSK : Differential time ( n sec )
+      
+     (Creation Date and Author)
+       1996.02.13 ; K.Kaneyuki   
+
+     (Comment)
+
+
+==> diftevsk.F <==
+
+     (Purpose)
+       Calc DIFFERETIAL TIME OF EACH EVENT
+
+     (Input)
+       ICLKOLD(3) : OLD 48bit clock
+
+     (Output)
+       DIFTEVSK : Differential time ( n sec )
+      
+     (Creation Date and Author)
+       1996.02.13 ; K.Kaneyuki   
+
+     (Comment)
+
+
+==> headsk.F <==
+
+     (Purpose)
+        Read 'HEADER' bank and fill the common /SKHEAD/
+
+     (Input)
+        none
+
+     (Output)
+       
+     (Return)
+        Return 1 ; Data w/o 'HEADER' bank
+       
+
+     (Creation Date and Author)
+       1992.08.27 ; First version by K.S.Hirata
+       1995.11.17 ;      modified by Y.Koshio
+
+==> pdstsk.F <==
+
+     (Purpose)
+        Read NEXT 'PDST' bank and fill the commons /SKPDST/,/SKTEMP/
+
+     (Input)
+        none
+
+     (Output)
+       
+     (Return)
+        Return 1 ; Data w/o 'PDST' bank
+       
+
+     (Creation Date and Author)
+       1992.08.27 ; First version by K.S.Hirata
+
+
+==> skbadch.F <==
+
+     (Purpose)
+        Read badch information and fill it into COMMON/COMBAD/
+
+     (Input)
+        NRUNB ; run number
+        NSUBB ; sub run number
+        IMASK ; what kind of badch are masked (for badch.XXXXXX)
+                   0: mask all badch
+                   1: use only "badch.dat"
+                2**1: mask criterion 1  dead 1
+                2**2: mask criterion 2  dead 2
+                2**3: mask criterion 3  noisy
+
+     (Output)
+        ierr  ; -1 : error
+        ierr  ;  1 : normal end  badch.XXXXXX
+        ierr  ;  2 : normal end  badch.XXXXXX.XXXXXX
+        ierr  ;  3 : normal end  /skam/pro/const/badch.dat
+
+     (Creation Date and Author)
+       1995.01.10 : First version by T.Hayakawa
+       1995.05.09 : modified by Y.Takeuchi
+             o implement results from "badsel"
+             o support "imask"
+
+==> skcaltabset_atmtq.F <==
+
+     Read and set calibration data for ATMTQ
+
+     <<Input>>
+         MA    :  major version numver
+         MI    :  minor version numver
+
+     <<Output>>
+         ISTA  :  status  (normal = 0,  error = -1)
+     
+      21-DEC-1995 written by Y.Takeuchi
+
+
+==> skcaltabset_pgain.F <==
+
+     Read and set calibration data for PMT gain
+
+     <<Input>>
+         MA    :  major version numver
+         MI    :  minor version numver
+
+     <<Output>>
+         ISTA  :  status  (normal = 0,  error = -1)
+     
+      28-FEB-1996 written by Y.Takeuchi
+
+==> skcaltabset_tqmap.F <==
+
+     Read and set calibration data for TQ-map
+
+     <<Input>>
+         MA    :  major version numver
+         MI    :  minor version numver
+
+     <<Output>>
+         ISTA  :  status  (normal = 0,  error = -1)
+     
+      31-JAN-1996 written by Y.Takeuchi
+
+
+==> skcaltabver.F <==
+
+     Read and set calibration table version
+
+     <<Input>>
+         NRUN     :  run number
+
+     <<Output>>
+         MA_ATM   :  major version numver of ATM TQ
+         MI_ATM   :  minor version numver of ATM TQ
+         MA_TQMAP :  major version numver of TQ-map
+         MI_TQMAP :  minor version numver of TQ-map
+         MA_GAIN  :  major version numver of PMT gain
+         MI_GAIN  :  minor version numver of PMT gain
+     
+      7-DEC-1995 written by Y.Takeuchi
+
+==> skchdir.F <==
+
+     (Purpose)
+       CAL. DIRECTION OF GAMMA
+
+     (Input)
+       TH  ; THE ANGLE BETWEEN DIR & GDIR
+       PH  : ANGLE PHI
+       DIR ; DIRECTION OF INPUT CHARGED PARTICLE
+
+     (Output)
+       GDIR ; DIRECTION OF OUTPUT GAMMA
+      
+     (Creation Date and Author)
+       1980.08.26 ; by K.Arisaka
+       1996.02.15 ; K.Kaneyuki   CHDIR -> SKCHDIR
+
+     (Comment)
+     
+
+==> skcontabrd.F <==
+
+     Read connection table and fill them into a common block SKTABL
+
+     M.Nakahata  4-NOV-1995
+
+      5-DEC-1995 modified by Y.Takeuchi
+         o support new connection table file (connection.super.dat)
+
+
+==> skhtrd.F <==
+
+       (Purpose)
+         Read 'ISLOWD' bank and fill the common /SKHVST/,/SKHVVL/,/SKTTST/,
+         /SKCOIL/
+
+       (Input)
+         none
+
+       (Output)
+
+
+       (Creation Date and Author)
+         1996.04.30 ; First version by H.Ishino
+
+
+==> skmkheada.F <==
+
+     (Purpose)
+        Make 'HEADA' bank
+
+     (Creation Date and Author)
+       1995.11.04 ; First version by Y.Koshio
+
+
+==> skmktqreal.F <==
+
+     (Purpose)
+        Make 'TQREAL' bank
+
+     (Creation Date and Author)
+       1995.11.04 ; First version by Y.Koshio
+
+
+==> skoptn.F <==
+
+     (Purpose)
+        Set option for SKREAD
+
+     (Input)
+        A   ; Option
+
+     (Output)
+        NONE
+
+     (Creation Date and Author)
+       1995.01.10 ; First version by Y.Koshio
+
+
+==> skrawread.F <==
+
+     (Purpose)
+        Read data in the banks and fill them into commons.
+
+     (Input)
+        LUN ; Logical Unit #
+
+     (Output)
+       
+     (Return)
+        Return 1 ; Read Error
+               2 ; End of File
+               3 ; Data 'PDST' bank
+               4 ; Data 'RUNINF' bank
+
+     (Creation Date and Author)
+       1995.11.07 ; First version by Y.Koshio
+     1996.03.30   ; Modified by J.Flanagan to add new anti banks + commons
+
+
+==> skrdsub.F <==
+
+     (Purpose)
+      READ SUB EVENT
+
+     (Input)
+       NSUB ; 0 : Parent evnet
+              N : Nth sub event
+
+     (Output)
+      
+     (Creation Date and Author)
+       1996.03.23 ; by T.Hayakawa
+
+     (Comment)
+     
+
+==> skread.F <==
+
+     (Purpose)
+        Read data in the banks and fill them into commons.
+        (for Not compiling constant file)
+
+     (Input)
+        ILUN ; Logical Unit #
+
+     (Output)
+       
+     (Return)
+        Return 1 ; Read Error
+               2 ; End of File
+               3 ; Data 'PDST' bank
+               4 ; Data 'RUNINF' bank
+
+     (Creation Date and Author)
+       1992.08.27 ; First version by K.S.Hirata
+            11.07 ;      modified by Y.Koshio
+
+
+==> sktqacom.F <==
+
+     (Purpose)
+        Fill /SKQA/,/SKTA/ commons from /SKTQAZ/
+
+     (Input)
+        none
+
+     (Output)
+       
+     (Return)
+       
+
+     (Creation Date and Author)
+       1996.03.31	Created, J.Flanagan
+     
+
+==> sktqconv.F <==
+
+     (Purpose)
+
+     (Input)
+
+       ICAB : cable number (1-MAXPM)
+       IAB  : A-ch or B-ch (A = 1,  B = 2)
+       IT   : TAC count (0-4095)
+       IQ   : QAC count (0-4095)
+
+     (Output)
+       
+       T    : T (nsec)
+       Q    : Q (p.e.)
+
+     (Creation Date and Author)
+       1995.10.05 ; First version by Y.Takeuchi
+            11.07 ;      modified by Y.Koshio
+            12.21 ;      modified by Y.Takeuchi
+               o support calibration version information
+               o support ZEBRA format data file (ATMTQ)
+             1.25 ;      modified by Y.Takeuchi
+               o support negative hit
+             2.06 ;      modified by Y.Takeuchi
+               o support temporary TQMAP
+             2.28 ;      modified by Y.Takeuchi
+
+
+==> sktsig.F <==
+
+     (Purpose)
+        TDC resolution 
+
+     (Input)
+        PE ; Photoelectrons
+
+     (Output)
+        SIG ; TDC resolution (nsec)       
+       
+
+     (Creation Date and Author)
+       1992.06.17 ; First version by K.S.Hirata
+
+
+==> skupdt.F <==
+
+     (Purpose)
+        Read data in the banks of current event 
+                         and fill them into commons.
+        (for Not compiling constant file)
+
+     (Input)
+
+     (Output)
+       
+     (Creation Date and Author)
+       1996.01.12 ; First version by Y.Koshio
+
+
+==> tqacomsk.F <==
+
+     (Purpose)
+        Fill /SKQA/,/SKTA/ commons from /SKTQAZ/
+
+     (Input)
+        none
+
+     (Output)
+       
+     (Return)
+       
+
+     (Creation Date and Author)
+       1996.03.31	Created, J.Flanagan
+     
+
+==> tqarealsk.F <==
+
+     (Purpose)
+        Read 'TQAREAL' bank and fill the commons /SKQA/,/SKTA/,/SKTQAZ/
+
+     (Input)
+        none
+
+     (Output)
+        ierr =0  normal
+        ierr =1  Data w/o 'TQAREAL' bank
+
+     (Creation Date and Author)
+       1995.10.14 ; First version by Y.Koshio
+     
+
+
+==> tqask.F <==
+
+     (Purpose)
+        Read 'TQA' bank and fill the commons /SKQA/,/SKTA/
+
+     -->CHANGE:  Read 'RWANTI', fill commons /skqa/,/skta/,/sktqaz/,/skheada/
+        Only go back to TQA if RWANTI not there (to still handle MC)
+
+     (Input)
+        none
+
+     (Output)
+       
+     (Return)
+        Return 1 ; Data w/o 'TQA' bank
+       
+
+     (Creation Date and Author)
+       1994.11.02 ; First version by Koshio,Y
+	1996.03.30 ; Use dummy constants for anti- data -- Flanagan, J.
+
+
+==> tqrawsk.F <==
+
+     (Purpose)
+        Read 'TQ' bank and fill the commons /SKQ/,/SKT/,/SKCHNL/
+
+     (Input)
+        none
+
+     (Output)
+       
+     (Return)
+        Return 1 ; Data w/o 'TQ' bank
+       
+
+     (Creation Date and Author)
+       1992.08.27 ; First version by K.S.Hirata
+
+
+==> tqrealsk.F <==
+
+     (Purpose)
+        Read 'TQREAL' bank and fill the commons /SKQ/,/SKT/,/SKCHNL/
+
+     (Input)
+        none
+
+     (Output)
+       
+     (Return)
+        Return 1 ; Data w/o 'TQREAL' bank
+       
+
+     (Creation Date and Author)
+       1995.10.14 ; First version by Y.Koshio
+     
+
+==> tqsk.F <==
+
+     (Purpose)
+        Read 'TQ' bank and fill the commons /SKQ/,/SKT/,/SKCHNL/
+
+     (Input)
+        none
+
+     (Output)
+       
+     (Return)
+        Return 1 ; Data w/o 'TQ' bank
+       
+
+     (Creation Date and Author)
+       1992.08.27 ; First version by K.S.Hirata
+

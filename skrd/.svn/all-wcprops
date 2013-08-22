@@ -1,0 +1,449 @@
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/svn/rep/!svn/ver/18095/skofl/trunk/src/skrd
+END
+set_timing_gate_nsec2.F
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/svn/rep/!svn/ver/18095/skofl/trunk/src/skrd/set_timing_gate_nsec2.F
+END
+skqcoroff.F
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/skqcoroff.F
+END
+runinfsk.F
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/rep/!svn/ver/11213/skofl/trunk/src/skrd/runinfsk.F
+END
+cmtqsk.F
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/rep/!svn/ver/183/skofl/trunk/src/skrd/cmtqsk.F
+END
+skcaltabset_tqmap.F
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/rep/!svn/ver/12627/skofl/trunk/src/skrd/skcaltabset_tqmap.F
+END
+skcaltabset_atmtq.F
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/skcaltabset_atmtq.F
+END
+skqcorcab.F
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/skqcorcab.F
+END
+pdstsk.F
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/rep/!svn/ver/17326/skofl/trunk/src/skrd/pdstsk.F
+END
+spacersk.F
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/rep/!svn/ver/12473/skofl/trunk/src/skrd/spacersk.F
+END
+skqcorrate.F
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/rep/!svn/ver/11371/skofl/trunk/src/skrd/skqcorrate.F
+END
+skoptn.F
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/rep/!svn/ver/14090/skofl/trunk/src/skrd/skoptn.F
+END
+skdark.F
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/rep/!svn/ver/12919/skofl/trunk/src/skrd/skdark.F
+END
+skcaltabset_qb.F
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/skcaltabset_qb.F
+END
+tqrealsk.F
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/rep/!svn/ver/13024/skofl/trunk/src/skrd/tqrealsk.F
+END
+tqarealsk.F
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/rep/!svn/ver/12909/skofl/trunk/src/skrd/tqarealsk.F
+END
+tqrawsk.F
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/rep/!svn/ver/15935/skofl/trunk/src/skrd/tqrawsk.F
+END
+skrdmcver.F
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/rep/!svn/ver/183/skofl/trunk/src/skrd/skrdmcver.F
+END
+skqdiv.F
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/skqdiv.F
+END
+skcaltabver.F
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/skcaltabver.F
+END
+GNUmakefile
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/rep/!svn/ver/18095/skofl/trunk/src/skrd/GNUmakefile
+END
+anticalsk.c
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/anticalsk.c
+END
+skqtcmhit_cor.c
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/rep/!svn/ver/12374/skofl/trunk/src/skrd/skqtcmhit_cor.c
+END
+skread.F
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/rep/!svn/ver/14551/skofl/trunk/src/skrd/skread.F
+END
+tqskz.F
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/rep/!svn/ver/12909/skofl/trunk/src/skrd/tqskz.F
+END
+tqvrealsk.F
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/tqvrealsk.F
+END
+skrdsub.F
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/skrdsub.F
+END
+skcaltabset_pgain.F
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/skcaltabset_pgain.F
+END
+dbstatsk.F
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/rep/!svn/ver/12473/skofl/trunk/src/skrd/dbstatsk.F
+END
+sktqacom.F
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/rep/!svn/ver/12909/skofl/trunk/src/skrd/sktqacom.F
+END
+skcaltabver_od.F
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/rep/!svn/ver/10987/skofl/trunk/src/skrd/skcaltabver_od.F
+END
+skcaltabfile.F
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/skcaltabfile.F
+END
+skcontabrd.F
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/rep/!svn/ver/15214/skofl/trunk/src/skrd/skcontabrd.F
+END
+aheadsk.F
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/aheadsk.F
+END
+tlincorsk.F
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/rep/!svn/ver/11229/skofl/trunk/src/skrd/tlincorsk.F
+END
+00README
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/00README
+END
+skupdt.F
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/skupdt.F
+END
+tqskaz.F
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/rep/!svn/ver/12909/skofl/trunk/src/skrd/tqskaz.F
+END
+skmktqreal.F
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/skmktqreal.F
+END
+skmcbadch.F
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/rep/!svn/ver/11953/skofl/trunk/src/skrd/skmcbadch.F
+END
+diftevsk.F
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/diftevsk.F
+END
+skcaltabset_od.F
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/rep/!svn/ver/11536/skofl/trunk/src/skrd/skcaltabset_od.F
+END
+tqsk.F
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/tqsk.F
+END
+skrawread.F
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/rep/!svn/ver/11205/skofl/trunk/src/skrd/skrawread.F
+END
+tqask.F
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/rep/!svn/ver/281/skofl/trunk/src/skrd/tqask.F
+END
+delete_outside_hits.F
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/rep/!svn/ver/15935/skofl/trunk/src/skrd/delete_outside_hits.F
+END
+skchdir.F
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/skchdir.F
+END
+cadcsk.F
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/cadcsk.F
+END
+skcaltabset_qbconst.F
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/rep/!svn/ver/11521/skofl/trunk/src/skrd/skcaltabset_qbconst.F
+END
+sktqconv_qb.F
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/rep/!svn/ver/15935/skofl/trunk/src/skrd/sktqconv_qb.F
+END
+qbstatsk.F
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/rep/!svn/ver/12473/skofl/trunk/src/skrd/qbstatsk.F
+END
+skbadch_old.F
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/skbadch_old.F
+END
+tqrawska.F
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/rep/!svn/ver/12374/skofl/trunk/src/skrd/tqrawska.F
+END
+skhtrd.F
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/skhtrd.F
+END
+headsk.F
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/rep/!svn/ver/13024/skofl/trunk/src/skrd/headsk.F
+END
+fill_zbs_commons.F
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/fill_zbs_commons.F
+END
+skbadch.F
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/rep/!svn/ver/12977/skofl/trunk/src/skrd/skbadch.F
+END
+skchkveto.F
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/rep/!svn/ver/12815/skofl/trunk/src/skrd/skchkveto.F
+END
+skqcor.F
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/skqcor.F
+END
+set_timing_gate.F
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/rep/!svn/ver/13024/skofl/trunk/src/skrd/set_timing_gate.F
+END
+difpresk.F
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/difpresk.F
+END
+skbadopt.F
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/skbadopt.F
+END
+sktqconv.F
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/svn/rep/!svn/ver/11229/skofl/trunk/src/skrd/sktqconv.F
+END
+tqvsk.F
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/tqvsk.F
+END
+set_timing_gate_nsec.F
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/svn/rep/!svn/ver/13024/skofl/trunk/src/skrd/set_timing_gate_nsec.F
+END
+skcontabrd_qb.F
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/skcontabrd_qb.F
+END
+atmaddrdsk.F
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/atmaddrdsk.F
+END
+skverchk.F
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/skverchk.F
+END
+skgetwater.F
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/rep/!svn/ver/16956/skofl/trunk/src/skrd/skgetwater.F
+END
+tqacomsk.F
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/tqacomsk.F
+END
+slimpdsk.F
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/slimpdsk.F
+END
+gpssk.F
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/rep/!svn/ver/11520/skofl/trunk/src/skrd/gpssk.F
+END
+skmkheada.F
+K 25
+svn:wc:ra_dav:version-url
+V 53
+/svn/rep/!svn/ver/21/skofl/trunk/src/skrd/skmkheada.F
+END
+tdiffsk.F
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/rep/!svn/ver/11923/skofl/trunk/src/skrd/tdiffsk.F
+END
+trgsk.F
+K 25
+svn:wc:ra_dav:version-url
+V 52
+/svn/rep/!svn/ver/13029/skofl/trunk/src/skrd/trgsk.F
+END
