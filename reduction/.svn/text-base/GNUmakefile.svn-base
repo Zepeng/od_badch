@@ -1,0 +1,98 @@
+#
+# In case of building locally, set SKOFL_ROOT variable 
+#      setenv ATMPDL_ROOT   ... 
+#  or directly set in this makefile 
+# ATMPD_ROOT = /home/atmpd/skrep/08a
+#
+
+#ifndef ATMPD_ROOT
+#ATMPD_ROOT = /var/phy/project/hep/neutrino/soft/skiv/atmpd
+#endif
+
+#load BOTH ATMPD and SKOFL (gmk has both)
+include $(SKOFL_ROOT)/config.gmk
+
+#CXX		= g++
+
+ROOTCFLAGS      = $(shell root-config --cflags)                                                                                                                                  
+ROOTLIBS        = $(shell root-config --libs)
+
+LOCAL_INC	=  -I./include -I./../core/include -I./../odclassify/include -I./../t2kodtiming/include 
+LOCAL_INC	+= -I./../odxtree/include -I./../tlikelihood/include -I./../odreconobj/include
+#LOCAL_INC	+= -I./../../t2kod/samplelib/include
+LOCAL_INC	+= -I./../../t2kod/t2kodfw/include -I./../../t2kod/kiloplotfw/include
+LOCAL_INC	+= $(ROOTCFLAGS)
+CXXFLAGS	+= -g 
+CXXFLAGS	+= $(LOCAL_INC)
+
+APLIB =  -lapdrlib -lpolfit -laplib -lringlib  -ltp -ltf  -lringlib -l1strd_pc \
+	 -laplib -lmsfit -lmslib -lseplib -lmsfit -lprtlib -lmuelib \
+	 -lffit -lstmu -laplowe -lpolfit -lexpq  -lska -lsofttrg \
+         -lapdrlib -lpolfit -laplib -lringlib  -ltp -ltf  -lringlib -lodlib
+
+#LOCAL_LIBS =  -L./../odxtree -lODXtree -L./../tlikelihood -lODLL -L./../t2kodtiming -lt2kodtiming 
+#LOCAL_LIBS += -L./../odclassify -lt2kodrd -L./../t2kodrecon -lt2kodrecon -L./../core -lt2kodrdcore
+LOCAL_LIBS = -L./../core -lt2kodrdcore 
+LOCAL_LIBS += -L./../odxtree -lODXtree
+LOCAL_LIBS += -L./../odreconobj -lodreconobj
+LOCAL_LIBS += -L./../tlikelihood -lODLL
+LOCAL_LIBS += -L./../odclassify -lt2kodrd
+LOCAL_LIBS += -L./../t2kodtiming -lt2kodtiming
+LOCAL_LIBS += -L./../odcsofttrigcor -lodcsofttrigcor
+LOCAL_LIBS += -L./../../t2kod/odgeotools -lodgeotools
+#LOCAL_LIBS += -L./../../t2kod/samplelib -lt2ksample
+LOCAL_LIBS += -L./../../t2kod/t2kodfw -lt2kodfw -L./../../t2kod/kiloplotfw -lkiloplotfw
+LOCAL_LIBS += $(ROOTLIBS)
+LOCAL_LIBS += $(APLIB)
+LDLIBS += $(LOCAL_LIBS)
+
+TARGETS = libt2kodreduc libt2kruninfo test_reduction test_runinfo run_t2kodreduc
+T2KINFO_OBJ = T2KRunInfo.o rootdictinfo.o SKsumClass.o SKbeamClass.o bsdclass.o t2kodreducC.o
+REDUC_OBJ = t2kodreduc_init.o t2kodreduc_definebranches.o t2kodreduc_event.o
+REDUC_OBJ += t2kodreduc_baselinecut.o t2kodreduc_od1cut.o t2kodreduc_od2cut.o t2kodreduc_odTcut.o t2kodreduc_printevent.o t2kodreduc_writetree.o
+
+
+all: $(TARGETS)
+
+%.o: ./src/%.cc ./include/*.hh
+	$(CXX) -c $(CXXFLAGS) -o $@ ./src/$*.cc
+%.o: ./src/%.C ./include/*.h
+	$(CXX) -c $(CXXFLAGS) -o $@ ./src/$*.C
+libt2kodreduc: $(REDUC_OBJ) 
+	LD_RUN_PATH=$(LIBDIR):$(SKOFL_LIBDIR) $(CXX) $(CXXFLAGS) -shared $^ -o $@.so
+libt2kruninfo: $(T2KINFO_OBJ) 
+	LD_RUN_PATH=$(LIBDIR):$(SKOFL_LIBDIR) $(CXX) $(CXXFLAGS) -shared $^ -o $@.so
+rootdictinfo.o: include/SKsumClass.h include/SKbeamClass.h include/bsdclass.h
+	rootcint -f rootcint/rootdictInfoClasses.cc -c include/SKsumClass.h include/SKbeamClass.h include/bsdclass.h rootcint/LinkDefInfoClasses.h
+	$(CXX) -c $(CXXFLAGS) ./rootcint/rootdictInfoClasses.cc -o rootdictinfo.o
+test_reduction: test_reduction.o libt2kodreduc
+	LD_RUN_PATH=$(LIBDIR):$(SKOFL_LIBDIR) $(CXX) $(CXXFLAGS) $< -L. -lt2kodreduc -L. -lt2kruninfo $(LDLIBS) -o $@
+run_t2kodreduc: run_t2kodreduc.o libt2kodreduc
+	LD_RUN_PATH=$(LIBDIR):$(SKOFL_LIBDIR) $(CXX) $(CXXFLAGS) $< -L. -lt2kodreduc -L. -lt2kruninfo $(LDLIBS) -o $@
+test_runinfo: test_runinfo.o
+	LD_RUN_PATH=$(LIBDIR):$(SKOFL_LIBDIR) $(CXX) $(CXXFLAGS) $^ -L. -lt2kruninfo $(LDLIBS) -o $@ 
+
+clean:: 
+	$(RM) -f *.o *.so
+	rm -f rootcint/rootdict.* test_reduction test_runinfo
+
+install.exec:: 
+
+setup::
+
+includes::
+
+install.includes::
+
+depend::
+
+lib::
+	$(OBJECTS)
+
+install.lib::
+
+exec:: 
+
+install.exec:: 
+
+

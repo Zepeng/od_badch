@@ -1,0 +1,154 @@
+#include <iostream>
+
+// SKREP
+#include "skheadC.h"
+#include "skgpsC.h"
+#include "skparmC.h"
+#include "sktqC.h"
+#include "apmringC.h" //APFIT data
+#include "apbnkcntlC.h" //APDIT meta data
+
+// T2KOD (analysis)
+#include "T2KOD.hh"
+
+// T2KODRD
+#include "gradclusterC.h"
+#include "gcresultsC.h"
+#include "T2KOD_ERRORS.hh"
+#include "t2kheadC.hh"
+#include "t2kodreduc_cutfunctions.hh"
+#include "t2kodreducC.hh"
+#include "ODXDecisionInterface.hh"
+#include "t2kodtiming_functions.hh"
+
+// ODTRACK/ODStopThru Analysis
+
+
+extern "C" { 
+  void readt2kbank_(int&);
+  void odclassify_event_(int&);
+  void gpssk_();
+  void apgetcntl_();
+  void apfit_(int&);
+  void skcread_(int&, int&);
+  void apgetbnk_(int&);
+}
+
+int t2kodreduc_event(int inputLUN) {
+
+  t2kodreduc_.status = 0; 
+
+  // GET T2K BANK, ESTABLISH COMMON/t2khead, 
+  // [this retrieves dT0]
+  int status = 0;
+  readt2kbank_(status);  // return 0 OK
+  if (status!=T2KOD_OK)
+    t2kodreduc_.status = t2kodreduc_.status | 1;
+  gpssk_();
+  t2kodreduc_.dt0raw = t2khead_.dt0;
+  t2kodreduc_.nspl = t2kgps_.nspl;
+  t2kodreduc_.nrunsk = skhead_.nrunsk;
+  t2kodreduc_.nrunbm = T2KOD::NRUNBM( t2kodreduc_.nrunsk );
+  if (t2kodreduc_num_events_processed==0 && t2kodreduc_.nrunsk!=T2KOD::MC_RUN)
+    p_t2kruninfo->LoadInfofiles(skhead_.nrunsk);
+
+  // Get the event flags (beam_good_spill and sk_quality)
+  if (t2kodreduc_.nrunsk!=T2KOD::MC_RUN) {
+    p_t2kruninfo->SetEntry( skhead_.nrunsk, t2kgps_.nspl, t2kgps_.t2kgps1[1]);
+    //t2kodreduc_.sksum_entry_found = p_t2kruninfo->GetSKsumFound();
+    t2kodreduc_.sksum_entry_found = -1; // obsolete
+    t2kodreduc_.beamsum_entry_found = p_t2kruninfo->GetSKbeamFound();
+    p_t2kruninfo->GetGoodT2KbeamEventFlags(t2kodreduc_.sk_quality, t2kodreduc_.bsd_good_spill, t2kodreduc_.pot);
+    p_t2kruninfo->GetBeamTime( t2kodreduc_.ct_beam_time );
+    if (t2kodreduc_.beamsum_entry_found!=1) {
+      t2kodreduc_.status = t2kodreduc_.status | (1 << 1); 
+    }
+  }
+  else {
+    t2kodreduc_.sk_quality = 1;
+    t2kodreduc_.bsd_good_spill = 1;
+    t2kodreduc_.pot = 0;
+  }
+
+  // Get nhitac and qismsk
+  gradclusterC(t2kodreduc_.nhitac, GC_ODMODE);
+  t2kodreduc_.qismsk = skq_.qismsk;
+  t2kodreduc_.nhitaz = sktqaz_.nhitaz;
+
+  // Check for APFIT.  Perform if necessary.
+  apgetcntl_();
+  if (apbnkcntl_.apnumscan>0) {
+    // Scan already exists, get bank
+    int apbank = -1; // < 0 says read newest scan
+    apgetbnk_(apbank);
+  }
+  else {
+    // no apscan yet performed. call apfit only if qismsk>=200
+    if ( t2kodreduc_.qismsk>=T2KOD::getODCRSThreshold()) {
+      // NO APSCANS
+      int apscan = 15360; //FULL PC MODE
+      apfit_( apscan ); 
+      // RESET BANK
+      int inverseLUN = -1*inputLUN;
+      int skreaderr = 0;
+      skcread_( inverseLUN, skreaderr );
+    }
+  }
+  t2kodreduc_.apnumscan = apbnkcntl_.apnumscan;
+
+  // Perform Classification
+  if (p_odxdecision!=NULL) {
+    status = p_odxdecision->ClassifyEvent();  // if OK, returns 0
+    if (status != T2KOD_OK )
+      t2kodreduc_.status = t2kodreduc_.status | (1 << 2 );
+    t2kodreduc_.odxdt = odxdecision_.t2kclass;
+    if (t2kodreduc_.qismsk>=200)
+      t2kodreduc_.t2kclass = t2kodreduc_.odxdt;
+    else
+      t2kodreduc_.t2kclass = T2KOD::ODC;
+    std::cout << "  odxdt llr: " << odxdecision_.odxllr << std::endl;
+  }
+  else {
+    std::cout << "ODXDT_p is NULL!! IMPROPER SETUP" << std::endl;
+    t2kodreduc_.odxdt = -1;
+    t2kodreduc_.t2kclass = t2kodreduc_.odclassify_old;
+    t2kodreduc_.status = t2kodreduc_.status | (1 << 2 );
+  }    
+
+  // Perform Legacy Classification
+  odclassify_event_( t2kodreduc_.odclassify_old );
+
+  // Perform Timing Corrections
+  status = t2kodtiming_processevent(); // if ok, returns 0
+  if (status!=T2KOD_OK)
+    t2kodreduc_.status = t2kodreduc_.status | (1 << 3 );
+
+  t2kodreduc_.dt0 = t2kodtiming_.t0_corrected[t2kodreduc_.t2kclass];
+  
+  // Baseline Cut
+  status = t2kodreduc_baselinecut(); // if ok, returns 0
+  if (status!=T2KOD_OK)
+    t2kodreduc_.status = t2kodreduc_.status | (1 << 4 );  
+
+  // OD1 Cut
+  status += t2kodreduc_od1cut();  // if ok, returns 0
+  if (status!=T2KOD_OK)
+    t2kodreduc_.status = t2kodreduc_.status | (1 << 5 );  
+
+  // OD2 Cut
+  status += t2kodreduc_od2cut();  // if ok, returns 0
+  if (status!=T2KOD_OK)
+    t2kodreduc_.status = t2kodreduc_.status | (1 << 6 );  
+
+  // ODT Cut
+  status += t2kodreduc_odTcut();  // if ok, returns 0
+  if (status!=T2KOD_OK)
+    t2kodreduc_.status = t2kodreduc_.status | (1 << 7 );  
+
+
+  p_t2kodreduc_tree->Fill();
+  t2kodreduc_num_events_processed++;
+
+  return status;
+
+}

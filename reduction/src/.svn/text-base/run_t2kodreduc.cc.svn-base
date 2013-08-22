@@ -1,0 +1,172 @@
+/* ! 
+   make_candidate_zbs
+   EXPECTS A LIST OF FILE PAIRS
+*/
+
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <string>
+#include <fstream>
+
+#include "skheadC.h"
+#include "skgpsC.h"
+
+#include "TTree.h"
+#include "TFile.h"
+#include "TNtuple.h"
+#include "TCanvas.h"
+
+#include "T2KOD.hh"
+#include "openzbs.hh"
+#include "t2kheadC.hh"
+#include "T2KRunInfo.hh"
+#include "T2KBeamNorm.hh"
+#include "t2kodreduc_cutfunctions.hh"
+#include "ODXDecisionInterface.hh"
+
+
+extern "C" {
+
+  void kzinit_();
+  void kzwrit_(int&);
+  void skoptn_(const char*, int);
+  void skcread_(int&, int&);
+  void skclosef_(int&);
+  void nerdnebk_(float*);  //this is located in t2kdatacore library.  uses routines from neut.
+  void odpc_2nd_s_(int&);
+  void kzbloc_(char*, int);
+  void gpssk_();
+  void apgetcom_(int&);
+  void readt2kbank_(int&);
+  void inpmt_(float*, int&);
+}
+
+int main(int argc, char** argv){
+  
+  int pid = 0;
+  std::string filename_out;
+  std::string filename_in;
+  if (argc!=3 && argc!=4) {
+    std::cout << "Usage: ./run_t2kodreduc [filelist] [root output file] [if mc: pid]" << std::endl;
+    return 0;
+  }
+  else {
+    filename_in = argv[1];
+    filename_out = argv[2];
+    if (argc==4)
+      pid = atoi(argv[3]);
+  }
+
+  ifstream filelist(filename_in.c_str());
+  std::vector< std::string > str_filelist;
+  char filebuf[1000];
+  filelist >> filebuf;
+  while (filelist.eof()==false){
+    std::string afile = filebuf;
+    str_filelist.push_back( afile );
+    filelist >> filebuf;
+  }
+
+  kzinit_();
+  skoptn_("31,30,29,27,26,23", int(strlen("31,30,29,27,26,23")));
+
+
+  // Output tree
+  TFile* tf_output = new TFile(filename_out.c_str(), "RECREATE");
+
+  int LUN_output = 10;
+  int LUN_input = 20;
+  int ierr = 0;
+  int eventsfound = 0;
+
+  std::cout << "Initialize T2K OD Reduction ... "<< std::endl;
+  t2kodreduc_init(tf_output);
+  tf_output->cd();
+  std::cout << "... done " << std::endl;
+  T2KRunInfo* runinfo = p_t2kruninfo;
+  p_t2kruninfo->SetVerbose(1);
+
+  // MC normalization
+  T2KBeamNorm* norm = new T2KBeamNorm("/home/tmw23/working/t2kod/fluxdata/hist.nu.sk.root", "/home/tmw23/working/t2kod/fluxdata/hayato-xs.root"); // these are legacy routines. remove.
+  std::cout << "Expected Rate: " <<   norm->GetExpectedRate(pid,9.95) << std::endl;
+  std::cout << "Fiducial Mass Considered: " << norm->GetDefinedFiducialMass() << std::endl;
+  tf_output->cd();
+
+  // NORMALIZATION NTUPLES
+  TNtuple* mcnorm = new TNtuple("MCNORM", "MC NORM", "fiducialhits:elapsedtime:pot");
+  TTree* datanorm = new TTree("datanorm", "DATA NORM");
+  int datanorm_totalspills = 0;
+  int datanorm_emptyspills = 0;
+  int datanorm_beamspills = 0;
+  int datanorm_goodspills = 0;
+  datanorm->Branch("nrunsk", &skhead_.nrunsk, "nrunsk/I");
+  datanorm->Branch("totalspills", &datanorm_totalspills, "totalspills/I");
+  datanorm->Branch("beamspills", &datanorm_beamspills, "beamspills/I");
+  datanorm->Branch("goodspills", &datanorm_goodspills, "goodspills/I");
+  datanorm->Branch("emptyspills", &datanorm_emptyspills, "emptyspills/I");
+
+  for (int n=0; n<str_filelist.size(); n++) {    
+    std::cout << " Running file: " << str_filelist.at(n) << std::endl;
+
+    openreadzbs(str_filelist.at(n).c_str(), LUN_input);
+
+    ierr = 0;
+    while (ierr!=2){
+      skcread_(LUN_input, ierr);
+
+      int it0xsk = skheadqb_.it0xsk;
+      int inthepmt = 0;
+      float mcvertex[3];
+      if (skhead_.nrunsk==T2KOD::MC_RUN) {
+	bool setmc = true;
+	odxdecision_setmcevent_(setmc);
+	nerdnebk_(mcvertex);
+	inpmt_(mcvertex, inthepmt);
+      }
+      
+      if (ierr==0 && inthepmt==0) {
+
+	gpssk_();
+
+	// Perform reduction
+	t2kodreduc_event(LUN_input);
+	t2kodreduc_printevent();
+	eventsfound++;
+
+	// mc normalization
+	if (skhead_.nrunsk==T2KOD::MC_RUN)
+	  norm->CountMCEvent(pid, mcvertex);
+      }// if read flag is ok.
+    }//end of while loop
+
+    skclosef_(LUN_input);
+
+    // store normalization info: try to be more sophisticated about this.
+    float fidcounts = 0;
+    float elapsedTime = 0.0;
+    float pot = 0.0;
+    if (skhead_.nrunsk==T2KOD::MC_RUN){
+      // store mc
+      fidcounts = norm->GetFiducialCount(pid);
+      elapsedTime = norm->GetElapsedTimeMC(pid, 9.95);
+      pot = norm->GetPOT(pid, 9.95, 750);
+      mcnorm->Fill(fidcounts, elapsedTime, pot);
+    }
+    else {
+    char goodspillcond[100];
+    sprintf(goodspillcond, "t2kod_nrunsk==%d && sk_quality==1 && bsd_good_spill==1");
+    //datanorm_goodspills = runinfo->GetSKbeam()->fChain->GetEntries(goodspillcond);
+    //datanorm->Fill();
+    }
+  }//end of loop over files
+
+  // close output (later for final sample)
+  //skclosef_(LUN_output);
+  std::cout << "Events Found: " << eventsfound << std::endl;
+
+  tf_output->Write();
+  return 0;
+
+
+}

@@ -1,0 +1,101 @@
+#ifndef _T2KRunInfo_h_
+#define _T2KRunInfo_h_ 1
+
+#include <iostream>
+#include <vector>
+#include <string>
+
+#include "TFile.h"
+#include "TTree.h"
+#include "TChain.h"
+#include "SKsumClass.h"
+#include "SKbeamClass.h"
+#include "bsdclass.h"
+
+#define T2KRUNINFO_NOTFOUND -1
+#define T2KRUNINFO_NRUNBMFILES 1
+#define T2KRUNINFO_NRUNSKFILES 2
+#define T2KRUNINFO_BSDFILELS 3
+
+class T2KRunInfo { 
+
+public:
+
+  T2KRunInfo();
+  ~T2KRunInfo();
+
+  int LoadInfofiles(int nrunsk);
+  void LoadSKsum();
+  void LoadSKbeam();
+  int LoadBSDIndexForBeamRun(int nrunbm);
+  int LoadSummaryForBeamRun(int nrunbm);
+  bsdclass* GetBSDIndex() { return m_bsd; };
+  TChain* GetBSDChain() { return m_bsdchain; };
+  
+  int GetSKsumFound();
+  int GetSKbeamFound();
+
+  SKsumClass* GetSKsum() { return m_SKsum; };
+  SKbeamClass* GetSKbeam() { return m_SKbeam; };
+
+  int GetNSPL() { return m_nspl; };
+  int GetGoodT2KbeamEventFlags(int& sk_quality_flag, int& bsd_good_spill, double &pot, int nspl=-1, int nrunsk=-1);
+  int SetEntry(int nrunsk, int nspl, int t2kgps1=0);
+  bool CheckEntry(int nrunsk, int nspl);
+  void SetVerbose(int verbose) { m_verbose = verbose; };
+
+private:
+
+  //verbose flag
+  int m_verbose;
+
+  // source data flags
+  bool m_loaded_pernrunbmfiles; // official files (first choice)
+  bool m_loaded_pernrunskfiles; // my summary files (second choice until official)
+  bool m_loaded_bsdforbeamrun;  // bsd ntuple (last resort)
+  int m_filemode; // flag whether we used my run info files, or Nakayama's official beam run files.
+
+  // bsd file parameters
+  std::string m_bsdfolder;
+  std::string m_bsdversion;
+
+  // This is the run number and beam run number used to set the file name
+  int m_nrunsk;
+  int m_nrunbm;
+
+  // This is the set of numbers used to tell our class which event it should pick from the rootfiles
+  int m_entryfound;
+  int m_nsubsk;
+  int m_nevsk;
+  int m_nspl;
+
+  // Found entry markers
+  int m_SKsum_found;
+  int m_SKbeam_found;
+  int m_nrunbm_sksum_found;
+  int m_nrunbm_skbeam_found;
+
+  // OFFICIAL SK SUM BY NRUNBM
+  SKsumClass* m_nrunbm_sksum;
+  SKbeamClass* m_nrunbm_skbeamsum;
+  TChain* m_nrunbm_sksum_chain;
+  TChain* m_nrunbm_skbeam_chain;
+
+  // SK SUM INFO BY RUNS
+  std::string m_strSKsumFilename;
+  std::string m_strSKbeamFilename;
+  TFile* m_tfSKsum;
+  TFile* m_tfSKbeam;
+  TTree* m_trSKsum;
+  TTree* m_trSKbeam;
+  SKsumClass* m_SKsum;
+  SKbeamClass* m_SKbeam;
+
+  // BSD CHAIN
+  bsdclass* m_bsd;
+  TChain* m_bsdchain;
+
+};
+
+
+#endif

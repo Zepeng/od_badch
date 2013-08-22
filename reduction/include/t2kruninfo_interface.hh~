@@ -1,0 +1,10 @@
+#ifndef __t2kruninfo_interface_h__
+#define __t2kruninfo_interface_h__ 1
+
+static T2KRunInfo T2KRunInfo_;
+static T2KRunInfo* p_T2KRunInfo_ = &T2KRunInfo_;
+
+void t2kruninfo_init_();
+
+
+#endif

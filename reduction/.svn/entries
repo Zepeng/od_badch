@@ -1,0 +1,49 @@
+8
+
+dir
+1
+file:///home/tmw23/working/repo/t2kodrd/trunk/reduction
+file:///home/tmw23/working/repo/t2kodrd
+
+
+
+2010-08-26T03:10:52.891796Z
+1
+tmw23
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+815afd70-b0bf-11df-8e9e-f8ae4c1034bc
+
+rootcint
+dir
+
+include
+dir
+
+src
+dir
+
+GNUmakefile
+file
+25
+
+
+
+2011-09-19T18:40:04.000000Z
+4a316b95126bcbbbbdd27a399deae45d
+2011-12-17T09:45:41.021226Z
+25
+tmw23
+
