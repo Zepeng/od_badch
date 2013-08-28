@@ -247,9 +247,10 @@ C  ----For only ATMPD MC
 C               write(6,*)'SKREAD-I-MC badch is assigned by control file'
 C               use badch of badch info bank or file / 
 C               if there is no , stop (only for atmpd)
-               nrun = 71300
-               write(*,*) "Modded-skread. calling skmcbadch w/ nrun=",nrun
                call skmcbadch(ntmp,nphase,nrun,nsub)
+C T's zbs files already have badch information 623*** the returned value
+C of nrun is 623***. For the nrun to be 71300 here.
+               nrun=71300
                if(nphase.le.0)then
                   write(6,*)'Not found in badch control table/yr=',
      &                 nsubsk
@@ -257,8 +258,7 @@ C               if there is no , stop (only for atmpd)
                else
                   if (nphase.ne.last_nphase .or. nrun.ne.last_nrun) then
                      if(nphase.eq.999)then
-                        write(6,*)'skread: ATMPD MC badch (nphase=',nphase,
-     &                       'info for ', 
+                        write(6,*)'skread: ATMPD MC badch info for ', 
      &                       'fixed nrun,nsub=', nrun,nsub
                      else   
                         write(6,*)'skread: using MC bad channels for phase'
@@ -296,8 +296,7 @@ ccc
                   ELSE IF(SK_GEOMETRY.eq.3) then
                      nrun = 31030
                   ELSE IF(SK_GEOMETRY.eq.4) then
-c                     nrun = 62361
-                     nrun = 72300
+                     nrun = 62361
                   ELSE
                      write(6,*) 'SK_GEOMETRY =',SK_GEOMETRY,
      &                    ' is not supported yet'

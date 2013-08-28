@@ -89,9 +89,6 @@ c*** initialize 1
       ierr = 0
       loglv = 5
 
-c     Output for checks
-      write(*,*) 'USING MODIFIED SKBADCH'
-
 c*** check run number and sub run number
       if (imaskbadopt.eq.imaskbad .and. nrunb.eq.nrunsv 
      $     .and. nsubb.eq.nsubsv) return

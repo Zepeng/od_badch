@@ -74,10 +74,8 @@ c --sk3
 c --sk4
       integer nrunbad4(maxnphase)
       data nrunbad4 /
-c     + 62361, 62361, 62361, 62361, 62361,
-c     + 62361, 62361, 62361, 62361, 62361/
-     + 71300, 71300, 71300, 71300, 71300,
-     + 71300, 71300, 71300, 71300, 71300/
+     + 62361, 62361, 62361, 62361, 62361,
+     + 62361, 62361, 62361, 62361, 62361/
 
       integer nsubbad(1:maxnphase)
       data nsubbad /1,1,1,1,1,1,1,1,1,1/
@@ -106,9 +104,6 @@ c     + 62361, 62361, 62361, 62361, 62361/
       save weallcount
 
 c --input runnum
-c     Output for checks
-      write(*,*) 'USING MODIFIED SKMCBADCH',iyear,' ',
-     &     iphase,' ',irun,' ',isub
       
       if(SK_GEOMETRY.eq.1) then
          call UCOPY(nrunbad1,nrunbad,maxnphase)
@@ -207,10 +202,7 @@ c------------------------------
                irun = 31800
                isub = 1
             elseif(SK_GEOMETRY.eq.4)then
-c               irun = 62361 ! does this need to be changed too?
-c               irun = 72300     ! does this need to be changed too?
-               irun = 68428
-               write(*,*) '[OD Bad channel test] Setting irun to ',irun
+               irun = 62361
                isub = 1
             else
                write(*,*), 'skmcbadch.F: SK_GEOMETRY =',SK_GEOMETRY,
@@ -227,8 +219,7 @@ c               irun = 72300     ! does this need to be changed too?
                   nphase = iphasebuf(2,i)
                   if(nphase.gt.0.and.nphase.le.maxnphase)then
                      iphase = nphase
-                     irun = 68428
-c                     nrunbad(nphase)
+                     irun = nrunbad(nphase)
                      isub = nsubbad(nphase)
                      ifound = 1
                      goto 97
@@ -238,7 +229,6 @@ c                     nrunbad(nphase)
          endif
 
  97      continue
-         write(*,*) '[OD Bad channel test] Setting irun to ',irun
         
 c ----------------------------------------
 c Create APBADCHINF bank
