@@ -5,3 +5,13 @@
 #########################################
 
 SK OD bad channel test code
+#skrd
+The function of skmcbadch:(1) Read the bad channel bank if the bank exists. (2) Set the run bumber by hand, this could set the bad channel file used to do the reduction.
+#test
+nhitac code is the same for both modified and unmodified. But it's complied twice and linked to different libs, modified and unmodified.
+
+odpc_2nd_s: The code is modified to return the cluster positon. The modified code is compliled locally and linked to nhitac program.
+
+#result
+This directory includes the ROOT scripts to analyze the reduction result.
+
